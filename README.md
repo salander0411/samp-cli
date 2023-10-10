@@ -24,8 +24,8 @@ This is the continuation of the now deprecated `sam-patterns-cli` tool. It has b
   - [samp local](#samp-local) - test your Lambda functions locally with real events from your AWS account
   - [samp explore](#samp-explore) - explore patterns on serverlessland.com
   - [samp console](#samp-console) - open the AWS console for a resource in your stack
-  - [samp generate](#samp-generate) - generate a SAM resources with the help of ChatGPT prompts
-  - [samp describe](#samp-describe) - describe a SAM resource using ChatGPT
+  - [samp generate](#samp-generate) - generate a SAM resources with the help of Claude Model prompts
+  - [samp describe](#samp-describe) - describe a SAM resource using Claude
   - [samp source](#samp-source) - add additional sources for init templates and pattern imports
   - [samp policy](#samp-policy) - generate IAM policies for your Lambda functions, state machines and IAM roles
   - [samp return-values](#samp-return-values) - get the return values of a SAM/CloudFormation resource
@@ -246,20 +246,20 @@ Options:
 ![Demo](images/demo-console.gif)
 
 ### samp generate
-Generates SAM resources, CDK code, StepFunctions ASL and Lambda functions in any language based on a query to ChatGPT. If you ask for SAM resources, it will merges them into your existing template. 
+Generates SAM resources, CDK code, StepFunctions ASL and Lambda functions in any language based on a query to Claude. If you ask for SAM resources, it will merges them into your existing template. 
 
-This is an experimental feature and requires a ChatGPT API key. You can get one [here](https://platform.openai.com/account/api-keys). Make sure to validate the output before deploying your template as it might contain errors or things that could incur cost 
+This is an experimental feature using AWS Bedrock claude model. Make sure to validate the output before deploying your template as it might contain errors or things that could incur cost 
 
 ```
 Usage: sampat generate|g [options]
 
-Generates resources from a ChatGPT response
+Generates resources from a Claude model response
 
 Options:
   -t, --template [template]         SAM template file (default: "template.yaml")
-  -q, --query [query]               Question to ask ChatGPT. I.e "a lambda function that's triggered by an S3 event"
-  -m, --model [model]               OpenAI model to use. Valid values are 'gpt-3.5-turbo' and 'gpt-4'. Note that gpt-3.5-turbo is fine for
-                                    most use cases and that gpt-4 is slower and more expensive (default: "gpt-3.5-turbo")
+  -q, --query [query]               Question to ask. I.e "a lambda function that's triggered by an S3 event"
+  -m, --model [model],              Claude model to use. Valid values are 'anthropic.claude-v1' (claude 1.3) and 'anthropic.claude-instant-v1' (claude instant 1.2) and 'anthropic.claude-v2' (claude 2.0)
+                                    default as 'anthropic.claude-v2'
   -o, --output [output]             Output feature. Valid values are 'SAM', 'CDK', 'lambda-<language>' or 'ASL'. If not 'SAM', set
                                     --output-file (default: "SAM")
   -of, --output-file [output-file]  Output file. Only applicable if --output is CDK
@@ -276,17 +276,17 @@ Options:
 Note that quality of results may vary and that you sometimes have to run the command a few times to get a good result.
 
 ### samp describe
-Describes a pattern using ChatGPT and gives suggestions on how to improve security.
+Describes a pattern using Claude and gives suggestions on how to improve security.
 
 ```
 Usage: sampat describe|d [options]
 
-Describes a SAM template using ChatGPT
+Describes a SAM template using Claude
 
 Options:
   -t, --template [template]           SAM template file (default: "template.yaml")
   -r, --repository-path [repository]  Github repository path, i.e "aws-samples/serverless-patterns/apigw-sfn"
-  -m, --model [model]                 OpenAI model to use. Valid values are 'gpt-3.5-turbo' and 'gpt-4'. Note that gpt-3.5-turbo is fine for most use cases and that gpt-4 is slower and more expensive (default: "gpt-3.5-turbo")
+  -m, --model [model]                 Claude model to use. Valid values are 'anthropic.claude-v1' and 'anthropic.claude-instant-v1' and 'anthropic.claude-v2' (default: "anthropic.claude-v2")
   -h, --help                          display help for command
 ```
 

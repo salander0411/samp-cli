@@ -4,11 +4,11 @@ program
   .command("generate")
   .alias("g")
   .option("-t, --template [template]", "SAM template file", "template.yaml")
-  .option("-q, --query [query]", "Question to ask ChatGPT. I.e \"a lambda function that's triggered by an S3 event\"")
-  .option("-m, --model [model]", "OpenAI model to use. Valid values are 'gpt-3.5-turbo' and 'gpt-4'. Note that gpt-3.5-turbo is fine for most use cases and that gpt-4 is slower and more expensive", "gpt-3.5-turbo")
+  .option("-q, --query [query]", "Question to ask. I.e \"a lambda function that's triggered by an S3 event\"")
+  .option("-m, --model [model]", "Claude model to use. Valid values are 'anthropic.claude-v1' and 'anthropic.claude-instant-v1' and 'anthropic.claude-v2' ", "anthropic.claude-v2")
   .option("-o, --output [output]", "Output feature. Valid values are 'SAM', 'CDK', 'lambda-<language>' or 'ASL'. If not 'SAM', set --output-file", "SAM")
   .option("-of, --output-file [output-file]", "Output file. Only applicable if --output is CDK")
-  .description("Generates resources from a ChatGPT response")
+  .description("Generates resources from a Claude response")
   .action(async (cmd) => {
     await generate.run(cmd);
   });

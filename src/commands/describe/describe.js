@@ -1,22 +1,25 @@
 const inputUtil = require("../../shared/inputUtil");
 const parser = require("../../shared/parser");
-const { Configuration, OpenAIApi } = require("openai");
+
 const settingsUtil = require("../../shared/settingsUtil");
 const fs = require("fs-extra");
 var Spinner = require('cli-spinner').Spinner;
 const baseFile = require("../../shared/baseFile.json");
 const githubUtil = require("../../shared/githubUtil");
-var spinner = new Spinner('Waiting for ChatGPT... %s');
+var spinner = new Spinner('Waiting for Claude... %s');
 spinner.setSpinnerString('|/-\\');
-async function run(cmd) {
-  const apiKey = settingsUtil.getConfigSource().openaiApiKey;
-  if (!apiKey) {
-    console.log(
-      "You need to set your OpenAI API key. Use the 'samp configure' command to do this. You can get your API key from https://platform.openai.com/account/api-keys"
-    );
-    return;
-  }
 
+const JSON = require("JSON");
+const util = require("util");
+const utf8Decoder = new util.TextDecoder("utf-8", { ignoreBOM: true });
+const { BedrockRuntimeClient, InvokeModelCommand } = require("@aws-sdk/client-bedrock-runtime");
+
+const bedrockclient = new BedrockRuntimeClient({
+  region: "us-east-1",
+  profile: "global"
+});
+
+async function run(cmd) {
   let template
   if (!cmd.repositoryPath) {
     template = await fs.readFile(cmd.template, "utf8");
@@ -59,10 +62,7 @@ async function run(cmd) {
       return;
     }    
   }
-  const configuration = new Configuration({
-    apiKey,
-  });
-  const openai = new OpenAIApi(configuration);
+
   let easterEggPrompt = "";
   if (cmd["🥚"]) {
     const funWaysOfDescribingSOmethingBoring = [
@@ -80,28 +80,38 @@ async function run(cmd) {
 
     easterEggPrompt = " Do it " + easterEggPrompt;
   }
-  const openAiRequest = {
-    model: cmd.model,
-    messages: [
-      {
-        role: "user",
-        content: `In three sections, describe what the template does, if there are any security issues and how it can be improved: ${template}.${easterEggPrompt}`,
+
+  const claudeBody = JSON.stringify({
+        "prompt": "\n\nHuman:In three sections, describe what the template does, if there are any security issues and how it can be improved: " + template + "." + easterEggPrompt + "\n\nAssistant:",
+        "temperature": 0.5,
+        "top_p": 1,
+        "top_k": 250,
+        "max_tokens_to_sample": 400,
+        "stop_sequences": ["\n\nHuman:"]
       }
-    ],
-    temperature: 0.5,
-    max_tokens: 1000
+  )
+
+  const claudeRequest = {
+    body: claudeBody,
+    modelId: cmd.model,
+    accept: 'application/json',
+    contentType: 'application/json'
   };
+
+
   spinner.start();
   try {
-    
-  const response = await openai.createChatCompletion(openAiRequest);
-  spinner.stop();
-  let text = response.data.choices[0].message.content;
-  console.log(`\n\n${text}`);
-} catch (error) {
-  spinner.stop();
-  console.log("\n\n" + error.response.data.error.message);
-}
+    //call Claude Model to generate the response
+    const command = new InvokeModelCommand(claudeRequest);
+    const response = await bedrockclient.send(command);
+
+    spinner.stop();
+    let text = JSON.parse(utf8Decoder.decode(response.body)).completion;
+    console.log(`\n\n${text}`);
+    } catch (error) {
+      spinner.stop();
+      console.log("\n\n" + error.stack);
+    }
 
 
 }

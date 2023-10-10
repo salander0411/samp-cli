@@ -13,8 +13,14 @@ spinner.setSpinnerString('|/-\\');
 
 const { BedrockRuntimeClient, InvokeModelCommand } = require("@aws-sdk/client-bedrock-runtime");
 
+const bedrockclient = new BedrockRuntimeClient({
+  region: "us-east-1",
+  profile: "global"
+});
+
+
 async function run(cmd) {
-  console.log("*** Note: This is an experimental feature and depends on the BedRock Claude v1.3 API. Make sure you review the output carefully before using it in production ***")
+  console.log("*** Note: This is an experimental feature and depends on the BedRock Claude API. Make sure you review the output carefully before using it in production ***")
   const output = cmd.output.toLowerCase();
   if (output !== "sam" && !cmd.outputFile) {
     console.log(`You need to specify an output file with --output-file`);
@@ -77,19 +83,14 @@ async function run(cmd) {
 
   const claudeRequest = {
     body: claudeBody,
-    modelId: 'anthropic.claude-v1',
+    modelId: cmd.model,
     accept: 'application/json',
     contentType: 'application/json'
   };
 
   spinner.start();
 
-  //call bedrock API to generate response
-  const bedrockclient = new BedrockRuntimeClient({
-    region: "us-east-1",
-    profile: "global"
-  });
-
+  //call Claude Model to generate the response
   const command = new InvokeModelCommand(claudeRequest);
   const response = await bedrockclient.send(command);
 
